@@ -1,0 +1,12 @@
+<form hx-put="/name/1" hx-target="this" hx-swap="outerHTML">
+    <div>
+        <label>Character Name:</label>
+        <input type="text" name="name" value={{.Name}}></input>
+    </div>
+    <button>
+        Save
+    </button>    
+    <button hx-get="/name/1">
+        Cancel
+    </button>
+</form>
