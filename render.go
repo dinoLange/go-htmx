@@ -7,13 +7,14 @@ import (
 
 var templates = template.Must(template.ParseGlob("templates/*.html"))
 
-type Character struct {
-	Name string
+func renderStartTemplate(w http.ResponseWriter) {
+	err := templates.ExecuteTemplate(w, "start.html", nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
-func renderSheetTemplate(w http.ResponseWriter, name string) {
-	character := Character{Name: name}
-
+func renderSheetTemplate(w http.ResponseWriter, character Character) {
 	err := templates.ExecuteTemplate(w, "sheet.html", character)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
