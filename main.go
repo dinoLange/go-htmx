@@ -10,7 +10,7 @@ import (
 )
 
 type Character struct {
-	Id   int
+	Id   int64
 	Name string
 }
 
@@ -20,7 +20,8 @@ func main() {
 
 	r.HandleFunc("/", makeStartHandler())
 	r.HandleFunc("/character", makeCreateHandler())
-	r.HandleFunc("/character/{id}", makeSheetHandler())
+	r.HandleFunc("/character/{id}", makeSheetHandler()).Methods("GET")
+	r.HandleFunc("/character/{id}", makeDeleteCharacterHandler()).Methods("DELETE")
 	r.HandleFunc("/{field}/{id}", makeGetHandler()).Methods("GET")
 	r.HandleFunc("/{field}/{id}", makePutHandler()).Methods("PUT")
 	r.HandleFunc("/edit/{field}/{id}", makeEditHandler())
@@ -36,20 +37,25 @@ func makeCreateHandler() http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		renderSheetTemplate(w, character)
+		fmt.Println("created: ", character)
+		renderEditNameTemplate(w, character)
 	}
 }
 
 func makeStartHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		renderStartTemplate(w)
+		characters, err := loadAllCharacters()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		renderStartTemplate(w, characters)
 	}
 }
 
 func makeSheetHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		id, err := strconv.Atoi(vars["id"])
+		id, err := strconv.ParseInt(vars["id"], 10, 64)
 		if err != nil {
 			http.Error(w, "id "+vars["id"]+" is not an integer", http.StatusInternalServerError)
 			return
@@ -63,10 +69,28 @@ func makeSheetHandler() http.HandlerFunc {
 	}
 }
 
+func makeDeleteCharacterHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		vars := mux.Vars(r)
+		id, err := strconv.ParseInt(vars["id"], 10, 64)
+		if err != nil {
+			http.Error(w, "id "+vars["id"]+" is not an integer", http.StatusInternalServerError)
+			return
+		}
+		err = deleteCharacter(id)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+	}
+}
+
 func makeGetHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		id, err := strconv.Atoi(vars["id"])
+		id, err := strconv.ParseInt(vars["id"], 10, 64)
 		if err != nil {
 			http.Error(w, "id "+vars["id"]+" is not an integer", http.StatusInternalServerError)
 		}
@@ -77,7 +101,7 @@ func makeGetHandler() http.HandlerFunc {
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
-			renderNameTemplate(w, character.Name)
+			renderNameTemplate(w, character)
 		default:
 			http.Error(w, "editing field "+field+" not implemented", http.StatusInternalServerError)
 		}
@@ -88,7 +112,7 @@ func makePutHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		newName := r.FormValue("name")
 		vars := mux.Vars(r)
-		id, err := strconv.Atoi(vars["id"])
+		id, err := strconv.ParseInt(vars["id"], 10, 64)
 		if err != nil {
 			http.Error(w, "id "+vars["id"]+" is not an integer", http.StatusInternalServerError)
 		}
@@ -101,7 +125,7 @@ func makePutHandler() http.HandlerFunc {
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
-			renderNameTemplate(w, character.Name)
+			renderNameTemplate(w, character)
 		default:
 			http.Error(w, "editing field "+field+" not implemented", http.StatusInternalServerError)
 		}
@@ -111,7 +135,7 @@ func makePutHandler() http.HandlerFunc {
 func makeEditHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		id, err := strconv.Atoi(vars["id"])
+		id, err := strconv.ParseInt(vars["id"], 10, 64)
 		if err != nil {
 			http.Error(w, "id "+vars["id"]+" is not an integer", http.StatusInternalServerError)
 		}
@@ -122,7 +146,7 @@ func makeEditHandler() http.HandlerFunc {
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
-			renderEditNameTemplate(w, character.Name)
+			renderEditNameTemplate(w, character)
 		default:
 			http.Error(w, "editing field "+field+" not implemented", http.StatusInternalServerError)
 		}

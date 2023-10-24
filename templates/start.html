@@ -1,6 +1,36 @@
 <script src="https://unpkg.com/htmx.org@1.9.6"></script>
 
-<h1>DnD Character Sheet</h1>
-<div hx-target="this" hx-swap="outerHTML">
-    <button hx-get="/character" hx-swap="outerHTML"> Create new character</button>
+<div id="main-div">
+    <h1 hx-get="/" hx-target="#main-div">DnD Character Sheet</h1>
+
+    <div hx-target="this" hx-swap="outerHTML">
+        <div>
+            <button hx-get="/character" hx-swap="outerHTML"> Create new character</button>
+        </div>
+
+        <div>
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Edit</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                {{range .}}
+                <tbody hx-target="closest tr" hx-swap="outerHTML swap:1s">
+                    <tr>
+                        <td> {{.Name}} </td>
+                        <td>
+                            <button hx-get="/character/{{.Id}}" hx-swap="outerHTML">Open</button>
+                        </td>
+                        <td>
+                            <button hx-delete="/character/{{.Id}}" hx-swap="outerHTML">Delete</button>
+                        </td>
+                    </tr>
+                </tbody>
+                {{end}}
+            </table>
+        </div>
+    </div>
 </div>
