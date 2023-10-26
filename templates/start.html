@@ -1,9 +1,14 @@
 <script src="https://unpkg.com/htmx.org@1.9.6"></script>
-
+<style> 
+tr.htmx-swapping td {
+    opacity: 0;
+    transition: opacity 1s ease-out;
+  } 
+</style>
 <div id="main-div">
     <h1 hx-get="/" hx-target="#main-div">DnD Character Sheet</h1>
 
-    <div hx-target="this" hx-swap="outerHTML">
+    <div id="swap-div" hx-target="this" hx-swap="outerHTML">
         <div>
             <button hx-get="/character" hx-swap="outerHTML"> Create new character</button>
         </div>
@@ -18,14 +23,14 @@
                     </tr>
                 </thead>
                 {{range .}}
-                <tbody hx-target="closest tr" hx-swap="outerHTML swap:1s">
+                <tbody>
                     <tr>
                         <td> {{.Name}} </td>
                         <td>
-                            <button hx-get="/character/{{.Id}}" hx-swap="outerHTML">Open</button>
+                            <button hx-get="/character/{{.Id}}" hx-target="#swap-div" hx-swap="outerHTML swap:1s">Open</button>
                         </td>
                         <td>
-                            <button hx-delete="/character/{{.Id}}" hx-swap="outerHTML">Delete</button>
+                            <button hx-delete="/character/{{.Id}}" hx-target="closest tr" hx-swap="outerHTML swap:1s">Delete</button>
                         </td>
                     </tr>
                 </tbody>
