@@ -1,0 +1,16 @@
+{{template "basic-attributes" .}}
+
+
+{{define "basic-attributes"}}
+<div hx-target="this" hx-swap="outerHTML">
+    <div><label>Name:</label>{{.Name}}</div>
+    <div><label>Age:</label>{{.Age}}</div>
+    <div><label>Race:</label>{{.Race}}</div>
+    <div><label>Class:</label>{{.Class}}</div>
+    <div><label>Background:</label>{{.Background}}</div>
+
+    <button hx-get="/edit/name/{{.Id}}">
+        Edit
+    </button>
+</div>
+{{end}}

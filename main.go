@@ -10,8 +10,12 @@ import (
 )
 
 type Character struct {
-	Id   int64
-	Name string
+	Id         int64
+	Name       string
+	Age        int64
+	Race       string
+	Class      string
+	Background string
 }
 
 func main() {
@@ -24,6 +28,7 @@ func main() {
 	r.HandleFunc("/character/{id}", makeDeleteCharacterHandler()).Methods("DELETE")
 	r.HandleFunc("/{field}/{id}", makeGetHandler()).Methods("GET")
 	r.HandleFunc("/{field}/{id}", makePutHandler()).Methods("PUT")
+	r.HandleFunc("/character/basicattributes/{id}", makePutBasicAttributesHandler()).Methods("PUT")
 	r.HandleFunc("/edit/{field}/{id}", makeEditHandler())
 
 	log.Fatal(http.ListenAndServe(":8080", r))
@@ -38,7 +43,7 @@ func makeCreateHandler() http.HandlerFunc {
 			return
 		}
 		fmt.Println("created: ", character)
-		renderEditNameTemplate(w, character)
+		renderEditBasicAttributes(w, character)
 	}
 }
 
@@ -101,7 +106,7 @@ func makeGetHandler() http.HandlerFunc {
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
-			renderNameTemplate(w, character)
+			renderBasicAttributes(w, character)
 		default:
 			http.Error(w, "editing field "+field+" not implemented", http.StatusInternalServerError)
 		}
@@ -125,10 +130,33 @@ func makePutHandler() http.HandlerFunc {
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
-			renderNameTemplate(w, character)
+			renderBasicAttributes(w, character)
 		default:
 			http.Error(w, "editing field "+field+" not implemented", http.StatusInternalServerError)
 		}
+	}
+}
+
+func makePutBasicAttributesHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		id, err := strconv.ParseInt(vars["id"], 10, 64)
+		if err != nil {
+			http.Error(w, "id "+vars["id"]+" is not an integer", http.StatusInternalServerError)
+		}
+		character := Character{Id: id}
+		character.Name = r.FormValue("name")
+		character.Age, err = strconv.ParseInt(r.FormValue("age"), 10, 64)
+		if err != nil {
+			http.Error(w, "age "+r.FormValue("age")+" is not an integer", http.StatusInternalServerError)
+		}
+		character.Race = r.FormValue("race")
+		character.Class = r.FormValue("class")
+		_, err = character.save()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		renderBasicAttributes(w, character)
 	}
 }
 
@@ -146,7 +174,7 @@ func makeEditHandler() http.HandlerFunc {
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
-			renderEditNameTemplate(w, character)
+			renderEditBasicAttributes(w, character)
 		default:
 			http.Error(w, "editing field "+field+" not implemented", http.StatusInternalServerError)
 		}

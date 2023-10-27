@@ -46,6 +46,7 @@ func deleteCharacter(id int64) error {
 }
 
 func (character *Character) save() (int64, error) {
+	fmt.Println("save char ", character)
 	if _, err := getCharacterById(character.Id); err == sql.ErrNoRows {
 		return 0, err
 	}
