@@ -20,8 +20,8 @@ func initDataBaseAccess() *sql.DB {
 
 func getCharacterById(id int64) (Character, error) {
 	var character Character
-	row := db.QueryRow("SELECT id, name FROM character WHERE id = ?", id)
-	err := row.Scan(&character.Id, &character.Name)
+	row := db.QueryRow("SELECT id, name, age, race, class, background FROM character WHERE id = ?", id)
+	err := row.Scan(&character.Id, &character.Name, &character.Age, &character.Race, &character.Class, &character.Background)
 	if err != nil {
 		return character, err
 	}
@@ -35,10 +35,10 @@ func deleteCharacter(id int64) error {
 		count, err := res.RowsAffected()
 		if err == nil {
 			if count == 0 {
-				return fmt.Errorf("Zero rows were deleted")
+				return fmt.Errorf("zero rows were deleted")
 			}
 			if count > 1 {
-				return fmt.Errorf("More than one row was deleted")
+				return fmt.Errorf("more than one row was deleted")
 			}
 		}
 	}
@@ -68,7 +68,7 @@ func (character *Character) create() (int64, error) {
 
 func (character *Character) update() (int64, error) {
 	fmt.Println(character)
-	result, err := db.Exec("UPDATE character SET name = ? WHERE id = ?", character.Name, character.Id)
+	result, err := db.Exec("UPDATE character SET name = ?, age = ?, race = ?, class = ?, background = ? WHERE id = ?", character.Name, character.Age, character.Race, character.Class, character.Background, character.Id)
 	if err != nil {
 		return 0, fmt.Errorf("update character failed: %v", err)
 	}
@@ -81,15 +81,24 @@ func (character *Character) update() (int64, error) {
 
 func loadAllCharacters() ([]Character, error) {
 	var characters []Character
-	rows, err := db.Query("SELECT id, name FROM character")
+	rows, err := db.Query("SELECT id, name, age, race, class, background FROM character")
 	if err != nil {
 		return characters, err
 	}
 	var character Character
 	for rows.Next() {
-		rows.Scan(&character.Id, &character.Name)
+		rows.Scan(&character.Id, &character.Name, &character.Age, &character.Race, &character.Class, &character.Background)
 		characters = append(characters, character)
 	}
 	return characters, nil
 
+}
+
+type Character struct {
+	Id         int64
+	Name       string
+	Age        int64
+	Race       string
+	Class      string
+	Background string
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 )
@@ -28,21 +29,8 @@ func renderBasicAttributes(w http.ResponseWriter, character Character) {
 	}
 }
 
-func renderNameTemplate(w http.ResponseWriter, character Character) {
-	err := templates.ExecuteTemplate(w, "name.html", character)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
-
-func renderEditNameTemplate(w http.ResponseWriter, character Character) {
-	err := templates.ExecuteTemplate(w, "edit-name.html", character)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
-}
-
 func renderEditBasicAttributes(w http.ResponseWriter, character Character) {
+	fmt.Println(character)
 	err := templates.ExecuteTemplate(w, "edit-basic-attributes.html", character)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
